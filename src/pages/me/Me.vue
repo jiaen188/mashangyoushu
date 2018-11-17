@@ -72,11 +72,12 @@ export default {
     },
     borrowBook(id) {
       let _this = this
-      console.log('borrow *********')
+      console.log('borrow *********', Number(id))
+      this.token = wx.getStorageSync('token')
       if (this.token) {
         wx.request({
           method: 'post',
-          url: `http://hm2.hwd.cn/api/v1/borrow/${id}`,
+          url: `http://hm2.hwd.cn/api/v1/borrow/${Number(id)}`,
           header: {
             'authorization': `bearer ${this.token}`
           },
@@ -86,6 +87,9 @@ export default {
               wx.showToast({
                 title: '借书成功',
                 icon: 'success'
+              })
+              wx.switchTab({
+                url: '../../pages/comments/main'
               })
             }
           }
@@ -100,6 +104,7 @@ export default {
           if (res.result.indexOf('borrowid') > -1) {
             let codeString = res.result
             let code = codeString.split('borrowid')
+            console.log('code', code)
             wx.showModal({
               title: '提示',
               content: '是否借阅此书',
@@ -107,7 +112,8 @@ export default {
                 if (res.confirm) {
                   console.log('用户点击确定')
                   // setInterval(_this.borrowBook(code[2]))
-                  _this.borrowBook(code[2])
+                  console.log('code id', code[1])
+                  _this.borrowBook(code[1])
                 } else if (res.cancel) {
                   console.log('用户点击取消')
                 }

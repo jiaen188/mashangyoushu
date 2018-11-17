@@ -46,7 +46,7 @@
   </scroll-view>
   <button v-if="info.status === 101 || info.status === 102" class="btn btn-disable">正在采购中，请耐心等待</button>
   <button v-if="info.status === 100" class="btn btn-blue" @click="goBuy(info)">申请购买</button>
-  <button v-if="info.status === 202" class="btn btn-green" @click="contactOwner(info)">联系拥有者</button>
+  <button v-if="info.status === 202 || info.status === 201" class="btn btn-green" @click="contactOwner(info)">联系拥有者</button>
 </div>
 </template>
 

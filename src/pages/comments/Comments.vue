@@ -191,6 +191,8 @@ export default {
                 title: '已转借成功',
                 icon: 'success'
               })
+              _this.closeDesk()
+              _this.getMyBook()
             }
           }
         })

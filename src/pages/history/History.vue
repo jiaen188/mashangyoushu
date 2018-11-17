@@ -43,13 +43,13 @@ export default {
             'authorization': `bearer ${this.token}`
           },
           success(res) {
-            console.log('borrow',res)
+            console.log('history*******',res)
             if (res.data.code === 0) {
               _this.list = res.data.data.data.map(item => {
                 return {
                   ...item,
                   created_at: item.created_at.split(' ')[0],
-                  return_at: item.return_at.split(' ')[0]
+                  return_at: item.return_at && item.return_at.split(' ')[0]
                 }
               })
               _this.loading = res.data.data.data.length === 0
