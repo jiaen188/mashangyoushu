@@ -1,0 +1,7 @@
+{
+    "navigationBarTitleText": "扫一扫",
+    "usingComponents": {
+      "i-icon": "../../../static/iview/icon/index"
+    }
+}
+  

@@ -6,27 +6,27 @@
       </div>
       <div class="detail">
         <div class="row text-primary">
-          <div class="right">
+          <!-- <div class="right">
             {{book.rate}} <rate :value="book.rate"></rate>
-          </div>
+          </div> -->
           <div class="left">
             {{book.title}}
           </div>
         </div>
         <div class="row">
-          <div class="right text-primary">
+          <!-- <div class="right text-primary">
             浏览量：{{book.count}}
-          </div>
+          </div> -->
           <div class="left">
-            {{book.author || '作者数据错误' }}
+            豆瓣评分：{{book.average}}
           </div>
         </div>
         <div class="row">
-          <div class="right">
-            {{book.user_info.nickName}}
-          </div>
+          <!-- <div class="right">
+            {{book.user_info && book.user_info.nickName}}
+          </div> -->
           <div class="left">
-            {{book.publisher}}
+            {{book.author + ' / ' }}{{book.publisher + ' / '}}{{book.pubdate}}
           </div>
         </div>
       </div>
@@ -50,7 +50,12 @@ export default {
   },
   computed: {
     detailUrl () {
-      return '/pages/detail/main?id=' + this.book.id
+      if (this.book.status !== undefined) {
+        // 已经在我们的书库
+        return `/pages/detail/main?id=${this.book.id}&status=${this.book.status}`
+      } else {
+        return '/pages/detail/main?id=' + this.book.isbn13
+      }
     }
   },
   components: {

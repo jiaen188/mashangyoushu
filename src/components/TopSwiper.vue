@@ -29,8 +29,15 @@ export default {
   props: ['tops'],
   methods: {
     bookDetail (item) {
+      let url = ''
+      if (item.status !== undefined) {
+        // 已经在我们的书库
+        url = `/pages/detail/main?id=${item.id}&status=${item.status}`
+      } else {
+        url = '/pages/detail/main?id=' + item.isbn13
+      }
       wx.navigateTo({
-        url: '/pages/detail/main?id=' + item.id
+        url
       })
     }
   },

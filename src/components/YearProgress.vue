@@ -1,12 +1,23 @@
 <template>
   <div class="progress-bar">
     <progress :percent="percent" activeColor="#EA5A49"></progress>
-    <p>{{year}}已经过去了{{days}}天，{{percent}}%</p>
+    <p>{{year}}已经过去了{{days}}天，{{percent}}%, 已经阅读{{books}}本书</p>
   </div>
 </template>
 
 <script>
 export default {
+  data() {
+    return {
+      books: 0
+    }
+  },
+  mounted() {
+    this.getMyBook()
+  },
+  onShow() {
+    this.getMyBook()
+  },
   methods: {
     isLeapYeader () {
       const year = new Date().getFullYear()
@@ -20,6 +31,24 @@ export default {
     },
     getDayOfYear () {
       return this.isLeapYeader() ? 366 : 365
+    },
+    getMyBook() {
+      this.token = wx.getStorageSync('token')
+      let _this = this
+      if (this.token) {
+        wx.request({
+          url: `http://hm2.hwd.cn/api/v1/my/book`,
+          header: {
+            'authorization': `bearer ${this.token}`
+          },
+          success(res) {
+            console.log('mybook',res)
+            if (res.data.code === 0 && res.data.data.length !==0) {
+              _this.books = res.data.data.length
+            }
+          }
+        })
+      }
     }
   },
   computed: {
@@ -51,6 +80,9 @@ export default {
   width: 100%;
   progress {
     margin-bottom: 10px;
+  }
+  p {
+    font-size: 14px;
   }
 }
 </style>

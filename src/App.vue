@@ -16,6 +16,9 @@ export default {
 </script>
 
 <style>
+.page-container {
+  padding: 20rpx;
+}
 .text-footer {
   text-align: center;
   font-size: 12px;
@@ -43,7 +46,13 @@ export default {
   height: 40px;
   width: 100%;
 }
-.btn:active {
-  background: #FA5A49;
+.btn-disable {
+  background-color: grey;
+}
+.btn-blue {
+  background-color: blue;
+}
+.btn-green {
+  background-color: green;
 }
 </style>

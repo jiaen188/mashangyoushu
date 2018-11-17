@@ -6,9 +6,16 @@
     </div>
     <YearProgress></YearProgress>
 
-    <button v-if="userinfo.openId" @click="scanBook" class="btn">添加图书</button>
-    <button v-else open-type="getUserInfo" lang="zh_CN" class='btn' @getuserinfo="login">点击登录</button>
+    <div v-if="userinfo.nickName" @click="scanBook" class="icon-container">
+      <i-icon type="scan" size="100"></i-icon>
+    </div>
 
+    <!-- <button v-if="userinfo.openId" @click="scanBook" class="btn">添加图书</button> -->
+    <!-- <button v-else open-type="getUserInfo" lang="zh_CN" class='btn' @getuserinfo="login">点击登录</button> -->
+    <!-- <button v-if="userinfo.nickName" @click="scanBook" class="btn">添加图书</button> -->
+    <button v-else type="defalut" open-type="getUserInfo" class='btn' @getuserinfo="onGetUserInfo">授权登陆</button>
+    <div class="tip">点我扫一扫</div>
+    <button v-if="userinfo.nickName" class="btn" @click="clearHistory">清空缓存</button>
   </div>
 </template>
 
@@ -24,83 +31,137 @@ export default {
       userinfo: {
         avatarUrl: '../../../static/img/unlogin.png',
         nickName: ''
-      }
+      },
+      token: '',
+      books: 0
     }
   },
   methods: {
-    async addBook (isbn) {
-      const res = await post('/weapp/addbook', {
-        isbn,
-        openid: this.userinfo.openId
-      })
-      showModal('添加成功', `${res.title}添加成功`)
+    clearHistory() {
+      wx.clearStorage()
+      this.userinfo = {
+        avatarUrl: '../../../static/img/unlogin.png',
+        nickName: ''
+      }
+      this.token = ''
+    },
+    onGetUserInfo(e) {
+      console.log(e)
+      if (e.target.userInfo) {
+        this.userinfo.nickName = e.mp.detail.userInfo.nickName
+        this.userinfo.avatarUrl = e.mp.detail.userInfo.avatarUrl
+
+        wx.setStorageSync('userinfo', this.userinfo)
+
+        let _this = this
+
+        console.log('nickname', this.userinfo.nickName)
+
+        wx.request({
+          url: `http://hm2.hwd.cn/api/v1/auth?username=${this.userinfo.nickName}`,
+          success(res) {
+            console.log(res)
+            if (res.data.code === 0) {
+              wx.setStorageSync('token', res.data.data.token)
+              _this.token = res.data.data.token
+              console.log('this.toek', res.data.data.token)
+            }
+          }
+        })
+      }
+    },
+    borrowBook(id) {
+      let _this = this
+      console.log('borrow *********')
+      if (this.token) {
+        wx.request({
+          method: 'post',
+          url: `http://hm2.hwd.cn/api/v1/borrow/${id}`,
+          header: {
+            'authorization': `bearer ${this.token}`
+          },
+          success(res) {
+            console.log('borrowBook',res)
+            if (res.data.code === 0) {
+              wx.showToast({
+                title: '借书成功',
+                icon: 'success'
+              })
+            }
+          }
+        })
+      }
     },
     scanBook () {
+      let _this = this
       wx.scanCode({
         success: (res) => {
-          if (res.result) {
-            this.addBook(res.result)
-          }
-        }
-      })
-    },
-    getWxLogin () {
-      const self = this
-      // 获取临时登录凭证, 有一个唯一的code  https://developers.weixin.qq.com/miniprogram/dev/api/api-login.html#wxloginobject
-      wx.login({
-        success: function (loginResult) {
-          console.log('loginResult', loginResult)
-          qcloud.setLoginUrl(config.loginUrl)
-          qcloud.login({
-            success () {
-              // 获取用户信息
-              qcloud.request({
-                url: config.userUrl,
-                login: true,
-                success (userRes) {
-                  showSuccess('登录成功')
-                  console.log('登录成功,获取用户信息', userRes)
-                  wx.setStorageSync('userinfo', userRes.data.data)
-                  self.userinfo = userRes.data.data
+
+          if (res.result.indexOf('borrowid') > -1) {
+            let codeString = res.result
+            let code = codeString.split('borrowid')
+            wx.showModal({
+              title: '提示',
+              content: '是否借阅此书',
+              success (res) {
+                if (res.confirm) {
+                  console.log('用户点击确定')
+                  // setInterval(_this.borrowBook(code[2]))
+                  _this.borrowBook(code[2])
+                } else if (res.cancel) {
+                  console.log('用户点击取消')
                 }
-              })
-            },
-            fail (error) {
-              showModal('登录失败', error)
-            }
-          })
-        }
-      })
-    },
-    login (e) {
-      const self = this
-      // 当前的用户设置 https://developers.weixin.qq.com/miniprogram/dev/api/setting.html#wxgetsettingobject
-      wx.getSetting({
-        success: function (res) {
-          console.log('当前的用户设置', res)
-          // 用户的授权结果 https://developers.weixin.qq.com/miniprogram/dev/api/signature.html#wxchecksessionobject
-          if (res.authSetting['scope.userInfo']) {
-            // 检查用户登录是否过期
-            wx.checkSession({
-              success: function () {
-                const userinfo = wx.getStorageSync('userinfo')
-                if (userinfo) {
-                  self.userinfo = userinfo
-                  showSuccess('登录成功')
-                  console.log('登录成功')
-                } else {
-                  self.getWxLogin()
-                }
-                console.log('未过期中的userinfo', userinfo)
-              },
-              fail: function () {
-                // 过期了，需要重新登录，先清除登录状态
-                qcloud.clearSession()
-                self.getWxLogin()
               }
             })
-          } else {
-            showModal('用户未授权', e.mp.detail.errMsg)
+            return
+          }
+
+          if (res.result) {
+            console.log('扫描结果', res)
+            const token = wx.getStorageSync('token')
+            wx.request({
+              url: `http://hm2.hwd.cn/api/v1/isbn/${res.result}`,
+              header: {
+                'authorization': `bearer ${token}`
+              },
+              success(res) {
+                console.log(res)
+                // 添加图书后 的返回
+                if (res.data.code === 0 ) {
+                  showSuccess('添加成功')
+                  wx.showModal({
+                    title: '处理成功',
+                    content: res.data.msg,
+                    confirmText: '继续扫码',
+                    cancelText: '我的图书',
+                    success (res) {
+                      if (res.confirm) {
+                        _this.scanBook()
+                      } else if (res.cancel) {
+                        console.log('用户点击取消')
+                        wx.switchTab({
+                          url: '../../pages/comments/main'
+                        })
+                      }
+                    }
+                  })
+                } else {
+                  console.log('err')
+                  wx.showModal({
+                    title: '处理失败',
+                    content: res.data.msg,
+                    confirmText: '继续扫码',
+                    success (res) {
+                      if (res.confirm) {
+                        _this.scanBook()
+                      } else if (res.cancel) {
+                        console.log('用户点击取消')
+                      }
+                    }
+                  })
+                }
+              }
+            })
           }
         }
       })
@@ -118,7 +179,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .container {
   padding: 0 30rpx;
   .userinfo {
@@ -131,5 +192,12 @@ export default {
       border-radius: 50%
     }
   }
+}
+.icon-container {
+  display: flex;
+  justify-content: center;
+}
+.tip {
+  text-align: center;
 }
 </style>

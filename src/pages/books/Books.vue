@@ -1,10 +1,13 @@
 <template>
-  <div>
+  <div class="page-container">
+    <div class="search" @click="goSearch">
+      <input confirm-type="search" placeholder="搜索" />
+      <!-- <button type="defalut" class="btn">搜索</button> -->
+    </div>
     <top-swiper v-if="tops.length" :tops="tops"></top-swiper>
+
     <card v-for="book in books" :key="book.id" :book="book"></card>
-    <p class="text-footer" v-if="!more">
-      没有更多数据
-    </p>
+
   </div>
 </template>
 
@@ -19,48 +22,50 @@ export default {
       books: [],
       page: 0,
       more: true,
-      tops: []
+      tops: [],
+      token: ''
     }
   },
   mounted () {
-    this.getList(true)
-    this.getTop()
+    // this.getList(true)
+    // this.getTop()
+    // this.getBooklist()
   },
-  onPullDownRefresh () {
-    this.getList(true)
-    this.getTop()
-  },
-  onReachBottom () {
-    if (!this.more) {
-      // 没有更多了
-      return false
-    }
-    this.page = this.page + 1
-    this.getList()
+  onShow() {
+    console.log('hosw****')
+    this.getBooklist()
   },
   methods: {
-    async getList (init) { // 获取书籍books列表
-      if (init) {
-        this.page = 0
-        this.more = true
-      }
-      wx.showNavigationBarLoading()
-      const books = await get('/weapp/booklist', {page: this.page})
-      if (books.list.length < 10 && this.page > 0) {
-        this.more = false
-      }
-      if (init) {
-        this.books = books.list
-        wx.stopPullDownRefresh()
-      } else {
-        // 下拉刷新， 不能直接覆盖 books 而是累加
-        this.books = this.books.concat(books.list)
-      }
-      wx.hideNavigationBarLoading()
+    goSearch() {
+      wx.navigateTo({
+        url: '/pages/search/main'
+      })
     },
-    async getTop () { // 获取访问最多的那几本图书
-      const tops = await get('/weapp/top')
-      this.tops = tops.list
+    getBooklist() {
+      this.token = wx.getStorageSync('token')
+      let _this = this
+      if (this.token) {
+        // 去请求列表 todo
+        wx.request({
+          url: `http://hm2.hwd.cn/api/v1/books`,
+          header: {
+            'authorization': `bearer ${this.token}`
+          },
+          success(res) {
+            console.log('bookslist',res)
+            // 添加图书后 的返回
+            if (res.data.code === 0 ) {
+              _this.books = [...res.data.data.data]
+              if (res.data.data.data.length >=9 ) {
+                _this.tops = res.data.data.data.splice(0, 9)
+                console.log('tops****', _this.tops)
+              }
+              // _this.tops = res.data.data.data
+              console.log('booke', _this.books, _this)
+            }
+          }
+        })
+      }
     }
   },
   components: {
@@ -70,6 +75,20 @@ export default {
 }
 </script>
 
-<style>
-
+<style lang="scss" scoped>
+.search {
+  display: flex;
+  input {
+    height: 80rpx;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding-left: 20rpx;
+    flex: 1;
+    margin-right: 10px;
+  }
+  .btn {
+    width: auto;
+    margin: 0;
+  }
+}
 </style>
