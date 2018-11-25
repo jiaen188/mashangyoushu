@@ -1,7 +1,7 @@
 {
-  "name": "mpvue-mini-program",
+  "name": "mashangyoushu",
   "version": "1.0.0",
-  "description": "A Mpvue project",
+  "description": "这是丁香园企业合作事业部 第二届黑客马拉松 ZAZA小组的  码上有书小程序",
   "author": "jiaen188 <244189981@qq.com>",
   "private": true,
   "scripts": {
