@@ -78,7 +78,7 @@
 </template>
 
 <script>
-import { get } from '../../util.js'
+import { get, put, showSuccess } from '../../util.js'
 import Card from '../../components/Card'
 import CommentList from '../../components/CommentList'
 const QRCode = require('../../weapp-qrcode.js')
@@ -114,27 +114,19 @@ export default {
   mounted() {
     this.userinfo = wx.getStorageSync('userinfo')
     if (this.userinfo) {
-      let _this = this
-      wx.request({
-        url: `https://book.fatewolf.com/api/v1/user?username=${this.userinfo.nickName}`,
-        // url: `https://book.fatewolf.com/api/v1/user?username=淡漠`,
-        header: {
-          'authorization': `bearer ${this.token}`
-        },
-        success(res) {
-          console.log('username',res)
-          if (res.data.code === 0 ) {
-            if (res.data.data.roles === 'ROLE_SUPER_ADMIN') {
-              _this.isShowAll = true
-              _this.getAllApply()
-            }
-          }
+      get('user', {
+        username: this.userinfo.nickName
+      })
+      .then(res => {
+        console.log('username', res)
+        if (res.roles === 'ROLE_SUPER_ADMIN') {
+          this.isShowAll = true
+          this.getAllApply()
         }
       })
     }
   },
   onHide() {
-    console.log('*****hide')
     this.closeDesk()
   },
   onShow () {
@@ -150,23 +142,11 @@ export default {
       if (item.status !== 101) {
         return
       }
-      this.token = wx.getStorageSync('token')
-      let _this = this
-      if (this.token) {
-        wx.request({
-          method: 'put',
-          url: `https://book.fatewolf.com/api/v1/purchase/${item.id}`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('purchase****',res)
-            if (res.data.code === 0) {
-              _this.getAllApply()
-            }
-          }
-        })
-      }
+      put(`purchase/${item.id}`)
+      .then(res => {
+        console.log('purchase****',res)
+        this.getAllApply()
+      })
     },
     closeDesk() {
       this.isShowDesk = false
@@ -196,30 +176,16 @@ export default {
       this.timer = setInterval(this.getBorrowSucc, 1000)
     },
     getBorrowSucc() {
-      this.token = wx.getStorageSync('token')
-      let _this = this
-      if (this.token) {
-        wx.request({
-          url: `https://book.fatewolf.com/api/v1/back/${this.selected.id}`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('borrowSucc',res)
-            if (res.data.code === 0) {
-              if (_this.timer) {
-                clearInterval(_this.timer)
-              }
-              wx.showToast({
-                title: '已转借成功',
-                icon: 'success'
-              })
-              _this.closeDesk()
-              _this.getMyBook()
-            }
-          }
-        })
-      }
+      get(`back/${this.selected.id}`)
+      .then(res => {
+        console.log('back', res)
+        if (_this.timer) {
+          clearInterval(_this.timer)
+        }
+        showSuccess('已转借成功')
+        this.closeDesk()
+        this.getMyBook()
+      })
     },
     goDetail(item) {
       let url = ''
@@ -247,81 +213,45 @@ export default {
       }
     },
     getMyBook() {
-      this.token = wx.getStorageSync('token')
-      let _this = this
-      if (this.token) {
-        wx.request({
-          url: `https://book.fatewolf.com/api/v1/my/book`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('mybook',res)
-            if (res.data.code === 0 && res.data.data.length !==0) {
-              _this.mybooks = res.data.data.map(item => {
-                return {
-                  ...item, 
-                  statusText: item.status && statusList[item.status],
-                  apply_at: item.apply_at && item.apply_at.split(' ')[0],
-                  created_at: item.created_at && item.created_at.split(' ')[0],
-                  updated_at: item.updated_at && item.updated_at.split(' ')[0]
-                }
-              })
-            }
-          }
-        })
-      }
+      get('my/book')
+      .then(res => {
+        console.log('mybook', res)
+        if (res.length) {
+          this.mybooks = res.map(item => {
+            return this.dealResult(item)
+          })
+        }
+      })
     },
     getMyApply() {
-      this.token = wx.getStorageSync('token')
-      let _this = this
-      if (this.token) {
-        wx.request({
-          url: `https://book.fatewolf.com/api/v1/my/apply`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('myapply',res)
-            if (res.data.code === 0 && res.data.data.length !==0 ) {
-              _this.myapplys = res.data.data.map(item => {
-                return {
-                  ...item, 
-                  statusText: item.status && statusList[item.status],
-                  apply_at: item.apply_at && item.apply_at.split(' ')[0],
-                  created_at: item.created_at && item.created_at.split(' ')[0],
-                  updated_at: item.updated_at && item.updated_at.split(' ')[0]
-                }
-              })
-            }
-          }
-        })
-      }
+      get('my/apply')
+      .then(res => {
+        console.log('myapply',res)
+        if (res.length) {
+          this.myapplys = res.data.data.map(item => {
+            return this.dealResult(item)
+          })
+        }
+      })
     },
-    getAllApply() {
-      this.token = wx.getStorageSync('token')
-      let _this = this
-      if (this.token) {
-        wx.request({
-          url: `https://book.fatewolf.com/api/v1/allapply`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('allapply',res)
-            if (res.data.code === 0 && res.data.data.length !==0) {
-              _this.allapplys = res.data.data.map(item => {
-                return {
-                  ...item, 
-                  statusText: item.status && statusList[item.status],
-                  apply_at: item.apply_at && item.apply_at.split(' ')[0],
-                  created_at: item.created_at && item.created_at.split(' ')[0],
-                  updated_at: item.updated_at && item.updated_at.split(' ')[0]
-                }
-              })
-            }
-          }
-        })
+    getAllApply() {  
+      get('allapply')
+      .then(res => {
+        console.log('allapply', res)
+        if (res.length) {
+          this.allapplys = res.map(item => {
+            return this.dealResult(item)
+          })
+        }
+      })
+    },
+    dealResult(item) {
+      return {
+        ...item, 
+        statusText: item.status && statusList[item.status],
+        apply_at: item.apply_at && item.apply_at.split(' ')[0],
+        created_at: item.created_at && item.created_at.split(' ')[0],
+        updated_at: item.updated_at && item.updated_at.split(' ')[0]
       }
     }
   },

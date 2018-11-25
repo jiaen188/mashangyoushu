@@ -10,6 +10,10 @@ export function post (url, data) {
   return request(url, 'POST', data)
 }
 
+export function put (url, data) {
+  return request(url, 'PUT', data)
+}
+
 function request (url, method, data) {
   const token = wx.getStorageSync('token')
   const header = token ? {
