@@ -21,18 +21,10 @@ export default {
     return {
       books: [],
       page: 0,
-      more: true,
-      tops: [],
-      token: ''
+      tops: []
     }
   },
-  mounted () {
-    // this.getList(true)
-    // this.getTop()
-    // this.getBooklist()
-  },
   onShow() {
-    console.log('hosw****')
     this.getBooklist()
   },
   methods: {
@@ -42,30 +34,14 @@ export default {
       })
     },
     getBooklist() {
-      this.token = wx.getStorageSync('token')
-      let _this = this
-      if (this.token) {
-        // 去请求列表 todo
-        wx.request({
-          url: `https://book.fatewolf.com/api/v1/books`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('bookslist',res)
-            // 添加图书后 的返回
-            if (res.data.code === 0 ) {
-              _this.books = [...res.data.data.data]
-              if (res.data.data.data.length >=9 ) {
-                _this.tops = res.data.data.data.splice(0, 9)
-                console.log('tops****', _this.tops)
-              }
-              // _this.tops = res.data.data.data
-              console.log('booke', _this.books, _this)
-            }
-          }
-        })
-      }
+      get('books')
+      .then(res => {
+        console.log('books', res)
+        this.books = [...res.data]
+        if (res.data.length >=9 ) {
+          this.tops = res.data.splice(0, 9)
+        }
+      })
     }
   },
   components: {
