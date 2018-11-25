@@ -32,9 +32,7 @@ export default {
       userinfo: {
         avatarUrl: '../../static/img/unlogin.png',
         nickName: ''
-      },
-      token: '',
-      books: 0
+      }
     }
   },
   methods: {
@@ -47,20 +45,16 @@ export default {
         avatarUrl: '../../static/img/unlogin.png',
         nickName: ''
       }
-      this.token = ''
     },
     onGetUserInfo(e) {
       console.log(e)
+      let _this = this
       if (e.target.userInfo) {
         this.userinfo.nickName = e.mp.detail.userInfo.nickName
         this.userinfo.avatarUrl = e.mp.detail.userInfo.avatarUrl
 
         wx.setStorageSync('userinfo', this.userinfo)
-
-        let _this = this
-
         console.log('nickname', this.userinfo.nickName)
-
         get(`auth`, {
           username: this.userinfo.nickName
         })
@@ -73,56 +67,29 @@ export default {
     borrowBook(id) {
       let _this = this
       console.log('borrow *********', Number(id))
-      this.token = wx.getStorageSync('token')
-      if (this.token) {
-        wx.request({
-          method: 'post',
-          url: `https://book.fatewolf.com/api/v1/borrow/${Number(id)}`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('borrowBook',res)
-            if (res.data.code === 0) {
-              wx.showToast({
-                title: '借书成功',
-                icon: 'success'
-              })
-              wx.switchTab({
-                url: '../../pages/comments/main'
-              })
-            }
-          }
+      post(`borrow/${Number(id)}`)
+      .then(res => {
+        showSuccess('借书成功')
+        wx.switchTab({
+          url: '../../pages/comments/main'
         })
-      }
+      })
     },
     scanBook () {
       let _this = this
       wx.scanCode({
         success: (res) => {
-
+          // 扫描结果是 书本的二维码
           if (res.result.indexOf('borrowid') > -1) {
             let codeString = res.result
             let code = codeString.split('borrowid')
             console.log('code', code)
-            wx.showModal({
-              title: '提示',
-              content: '是否借阅此书',
-              success (res) {
-                if (res.confirm) {
-                  console.log('用户点击确定')
-                  console.log('code id', code[1])
-                  _this.borrowBook(code[1])
-                } else if (res.cancel) {
-                  console.log('用户点击取消')
-                }
-              }
-            })
+            this.sanQrCodeSucc(code[1])
             return
           }
 
           if (res.result) {
-            console.log('扫描结果', res)
+            console.log('扫描结果 是 条形码', res)
             get(`isbn/${res.result}`)
             .then(res => {
               console.log('扫描书本的 条形码请求接口返回', res)
@@ -132,6 +99,22 @@ export default {
               console.log('扫码 但是请求接口失败', e)
               this.getIsbnFail(e.msg)
             })
+          }
+        }
+      })
+    },
+    sanQrCodeSucc(code = '') {
+      let _this = this
+      wx.showModal({
+        title: '提示',
+        content: '是否借阅此书',
+        success (res) {
+          if (res.confirm) {
+            console.log('用户点击确定')
+            console.log('code id', code)
+            _this.borrowBook(code)
+          } else if (res.cancel) {
+            console.log('用户点击取消')
           }
         }
       })
