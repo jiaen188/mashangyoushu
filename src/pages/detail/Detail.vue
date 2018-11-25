@@ -76,7 +76,6 @@ export default {
       comment: '',
       location: '',
       phone: '',
-      token: '',
       status: ''
     }
   },
@@ -129,31 +128,22 @@ export default {
       })
     },
     getDetail () {
-      this.token = wx.getStorageSync('token')
-      if (this.token) {
-        let _this = this
-        let param = ''
-        if (this.status === undefined) {
-          // 不在我们的书库
-          param = `${this.bookid}`
-        } else {
-          param = `${this.bookid}?status=${this.status}`
-        }
-        wx.request({
-          url: `https://book.fatewolf.com/api/v1/books/${param}`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('books',res)
-            // 添加图书后 的返回
-            if (res.data.code === 0 ) {
-              let result = {...res.data.data, statusText: statusList[res.data.data.status]}
-              _this.info = result
-            }
-          }
-        })
+      let param = ''
+      if (this.status === undefined) {
+        // 不在我们的书库
+        param = `${this.bookid}`
+      } else {
+        param = `${this.bookid}?status=${this.status}`
       }
+
+      get(`books/${param}`)
+      .then(res => {
+        console.log('books/id', res)
+        this.info = {
+          ...res,
+          statusText: statusList[res.status]
+        }
+      })
     }
   },
   components: {
