@@ -38,7 +38,7 @@ export default {
       let _this = this
       if (this.token) {
         wx.request({
-          url: `http://hm2.hwd.cn/api/v1/borrow/${this.bookid}`,
+          url: `https://book.fatewolf.com/api/v1/borrow/${this.bookid}`,
           header: {
             'authorization': `bearer ${this.token}`
           },

@@ -6,6 +6,8 @@
 </template>
 
 <script>
+import { showSuccess, showModal, post, get } from '../util'
+
 export default {
   data() {
     return {
@@ -33,22 +35,13 @@ export default {
       return this.isLeapYeader() ? 366 : 365
     },
     getMyBook() {
-      this.token = wx.getStorageSync('token')
-      let _this = this
-      if (this.token) {
-        wx.request({
-          url: `http://hm2.hwd.cn/api/v1/my/book`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('mybook',res)
-            if (res.data.code === 0 && res.data.data.length !==0) {
-              _this.books = res.data.data.length
-            }
-          }
-        })
-      }
+      get('my/book')
+      .then(res => {
+        console.log('my/book in yearProcess', res)
+        if (res.data && res.data.length) {
+          this.books = res.data.length
+        }
+      })
     }
   },
   computed: {

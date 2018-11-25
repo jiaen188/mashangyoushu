@@ -60,7 +60,7 @@ export default {
         let _this = this
         wx.request({
           method: 'post',
-          url: `http://hm2.hwd.cn/api/v1/apply/${this.bookid}`,
+          url: `https://book.fatewolf.com/api/v1/apply/${this.bookid}`,
           data: {
             // remark: this.remark
           },
@@ -91,7 +91,7 @@ export default {
           param = `${this.bookid}?status=${this.status}`
         }
         wx.request({
-          url: `http://hm2.hwd.cn/api/v1/books/${param}`,
+          url: `https://book.fatewolf.com/api/v1/books/${param}`,
           header: {
             'authorization': `bearer ${this.token}`
           },

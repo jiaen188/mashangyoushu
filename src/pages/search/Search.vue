@@ -36,7 +36,7 @@ export default {
         this.token = wx.getStorageSync('token')
         let _this = this
         wx.request({
-          url: `http://hm2.hwd.cn/api/v1/search?kw=${this.key}`,
+          url: `https://book.fatewolf.com/api/v1/search?kw=${this.key}`,
           header: {
             'authorization': `bearer ${this.token}`
           },

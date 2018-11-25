@@ -20,7 +20,7 @@
           </div>
           <div class="time">
             <div class="time-detail">拥有日期{{book.updated_at}}</div>
-            <div class="from" @click.stop="showQrcode(book)">去转借</div>
+            <div class="from canclick" @click.stop="showQrcode(book)">去转借</div>
           </div>
         </div>
       </div>
@@ -58,7 +58,7 @@
         <div class="info">
           <div class="header">
             <div class="title">{{book.title}}</div>
-            <div class="status">{{book.statusText}}</div>
+            <div class="status canclick" @click.stop="changeStatus(book)">{{book.statusText}}</div>
           </div>
           <div class="publish">
             {{book.author}} / {{book.publisher}} / {{book.average}}
@@ -116,8 +116,8 @@ export default {
     if (this.userinfo) {
       let _this = this
       wx.request({
-        url: `http://hm2.hwd.cn/api/v1/user?username=${this.userinfo.nickName}`,
-        // url: `http://hm2.hwd.cn/api/v1/user?username=淡漠`,
+        url: `https://book.fatewolf.com/api/v1/user?username=${this.userinfo.nickName}`,
+        // url: `https://book.fatewolf.com/api/v1/user?username=淡漠`,
         header: {
           'authorization': `bearer ${this.token}`
         },
@@ -145,6 +145,29 @@ export default {
     }
   },
   methods: {
+    changeStatus(item) {
+      console.log('status', item.status)
+      if (item.status !== 101) {
+        return
+      }
+      this.token = wx.getStorageSync('token')
+      let _this = this
+      if (this.token) {
+        wx.request({
+          method: 'put',
+          url: `https://book.fatewolf.com/api/v1/purchase/${item.id}`,
+          header: {
+            'authorization': `bearer ${this.token}`
+          },
+          success(res) {
+            console.log('purchase****',res)
+            if (res.data.code === 0) {
+              _this.getAllApply()
+            }
+          }
+        })
+      }
+    },
     closeDesk() {
       this.isShowDesk = false
       this.selected = {}
@@ -177,12 +200,12 @@ export default {
       let _this = this
       if (this.token) {
         wx.request({
-          url: `http://hm2.hwd.cn/api/v1/back/${this.selected.id}`,
+          url: `https://book.fatewolf.com/api/v1/back/${this.selected.id}`,
           header: {
             'authorization': `bearer ${this.token}`
           },
           success(res) {
-            console.log('mybook',res)
+            console.log('borrowSucc',res)
             if (res.data.code === 0) {
               if (_this.timer) {
                 clearInterval(_this.timer)
@@ -216,13 +239,19 @@ export default {
       if (this.isShowAll && this.current === 'tab3') {
         this.getAllApply()
       }
+      if (this.current === 'tab1') {
+        this.getMyBook()
+      }
+      if (this.current === 'tab2') {
+        this.getMyApply()
+      }
     },
     getMyBook() {
       this.token = wx.getStorageSync('token')
       let _this = this
       if (this.token) {
         wx.request({
-          url: `http://hm2.hwd.cn/api/v1/my/book`,
+          url: `https://book.fatewolf.com/api/v1/my/book`,
           header: {
             'authorization': `bearer ${this.token}`
           },
@@ -248,7 +277,7 @@ export default {
       let _this = this
       if (this.token) {
         wx.request({
-          url: `http://hm2.hwd.cn/api/v1/my/apply`,
+          url: `https://book.fatewolf.com/api/v1/my/apply`,
           header: {
             'authorization': `bearer ${this.token}`
           },
@@ -274,7 +303,7 @@ export default {
       let _this = this
       if (this.token) {
         wx.request({
-          url: `http://hm2.hwd.cn/api/v1/allapply`,
+          url: `https://book.fatewolf.com/api/v1/allapply`,
           header: {
             'authorization': `bearer ${this.token}`
           },

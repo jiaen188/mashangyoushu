@@ -1,7 +1,10 @@
 <template>
   <div class="container">
+    <div class="switch-container">
+      <i-switch :value="switchItem" @change="onChangeSwitch" slot="footer"></i-switch>
+    </div>
     <div class="userinfo" @click="login">
-      <img :src="userinfo.avatarUrl" alt="">
+      <img :src="userinfo.avatarUrl">
       <p>{{userinfo.nickName}}</p>
     </div>
     <YearProgress></YearProgress>
@@ -10,26 +13,24 @@
       <i-icon type="scan" size="100"></i-icon>
     </div>
 
-    <!-- <button v-if="userinfo.openId" @click="scanBook" class="btn">添加图书</button> -->
-    <!-- <button v-else open-type="getUserInfo" lang="zh_CN" class='btn' @getuserinfo="login">点击登录</button> -->
-    <!-- <button v-if="userinfo.nickName" @click="scanBook" class="btn">添加图书</button> -->
     <button v-else type="defalut" open-type="getUserInfo" class='btn' @getuserinfo="onGetUserInfo">授权登陆</button>
-    <div class="tip">点我扫一扫</div>
-    <button v-if="userinfo.nickName" class="btn" @click="clearHistory">清空缓存</button>
+    <div v-if="userinfo.nickName" class="tip">点我扫一扫</div>
+    <button v-if="switchItem" class="btn" @click="clearHistory">清空缓存</button>
   </div>
 </template>
 
 <script>
 import YearProgress from '../../components/YearProgress.vue'
-import { showSuccess, showModal, post } from '../../util'
+import { showSuccess, showModal, post, get } from '../../util'
 import qcloud from 'wafer2-client-sdk'
 import config from '../../config.js'
 
 export default {
   data () {
     return {
+      switchItem: false,
       userinfo: {
-        avatarUrl: '../../../static/img/unlogin.png',
+        avatarUrl: '../../static/img/unlogin.png',
         nickName: ''
       },
       token: '',
@@ -37,10 +38,13 @@ export default {
     }
   },
   methods: {
+    onChangeSwitch() {
+      this.switchItem = !this.switchItem
+    },
     clearHistory() {
       wx.clearStorage()
       this.userinfo = {
-        avatarUrl: '../../../static/img/unlogin.png',
+        avatarUrl: '../../static/img/unlogin.png',
         nickName: ''
       }
       this.token = ''
@@ -57,16 +61,12 @@ export default {
 
         console.log('nickname', this.userinfo.nickName)
 
-        wx.request({
-          url: `http://hm2.hwd.cn/api/v1/auth?username=${this.userinfo.nickName}`,
-          success(res) {
-            console.log(res)
-            if (res.data.code === 0) {
-              wx.setStorageSync('token', res.data.data.token)
-              _this.token = res.data.data.token
-              console.log('this.toek', res.data.data.token)
-            }
-          }
+        get(`auth`, {
+          username: this.userinfo.nickName
+        })
+        .then(res => {
+          console.log('auth get succsss', res)
+          wx.setStorageSync('token', res.token)
         })
       }
     },
@@ -77,7 +77,7 @@ export default {
       if (this.token) {
         wx.request({
           method: 'post',
-          url: `http://hm2.hwd.cn/api/v1/borrow/${Number(id)}`,
+          url: `https://book.fatewolf.com/api/v1/borrow/${Number(id)}`,
           header: {
             'authorization': `bearer ${this.token}`
           },
@@ -111,7 +111,6 @@ export default {
               success (res) {
                 if (res.confirm) {
                   console.log('用户点击确定')
-                  // setInterval(_this.borrowBook(code[2]))
                   console.log('code id', code[1])
                   _this.borrowBook(code[1])
                 } else if (res.cancel) {
@@ -124,50 +123,49 @@ export default {
 
           if (res.result) {
             console.log('扫描结果', res)
-            const token = wx.getStorageSync('token')
-            wx.request({
-              url: `http://hm2.hwd.cn/api/v1/isbn/${res.result}`,
-              header: {
-                'authorization': `bearer ${token}`
-              },
-              success(res) {
-                console.log(res)
-                // 添加图书后 的返回
-                if (res.data.code === 0 ) {
-                  showSuccess('添加成功')
-                  wx.showModal({
-                    title: '处理成功',
-                    content: res.data.msg,
-                    confirmText: '继续扫码',
-                    cancelText: '我的图书',
-                    success (res) {
-                      if (res.confirm) {
-                        _this.scanBook()
-                      } else if (res.cancel) {
-                        console.log('用户点击取消')
-                        wx.switchTab({
-                          url: '../../pages/comments/main'
-                        })
-                      }
-                    }
-                  })
-                } else {
-                  console.log('err')
-                  wx.showModal({
-                    title: '处理失败',
-                    content: res.data.msg,
-                    confirmText: '继续扫码',
-                    success (res) {
-                      if (res.confirm) {
-                        _this.scanBook()
-                      } else if (res.cancel) {
-                        console.log('用户点击取消')
-                      }
-                    }
-                  })
-                }
-              }
+            get(`isbn/${res.result}`)
+            .then(res => {
+              console.log('扫描书本的 条形码请求接口返回', res)
+              this.getIsbnSuss(res.msg)
             })
+            .catch(e => {
+              console.log('扫码 但是请求接口失败', e)
+              this.getIsbnFail(e.msg)
+            })
+          }
+        }
+      })
+    },
+    getIsbnSuss(msg = '') {
+      let _this = this
+      wx.showModal({
+        title: '处理成功',
+        content: msg,
+        confirmText: '继续扫码',
+        cancelText: '我的图书',
+        success (res) {
+          if (res.confirm) {
+            _this.scanBook()
+          } else if (res.cancel) {
+            console.log('用户点击取消')
+            wx.switchTab({
+              url: '../../pages/comments/main'
+            })
+          }
+        }
+      })
+    },
+    getIsbnFail(msg = '') {
+      let _this = this
+      wx.showModal({
+        title: '处理失败',
+        content: msg,
+        confirmText: '继续扫码',
+        success (res) {
+          if (res.confirm) {
+            _this.scanBook()
+          } else if (res.cancel) {
+            console.log('用户点击取消')
           }
         }
       })
@@ -186,6 +184,11 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.switch-container {
+  position: fixed;
+  top: 20rpx;
+  right: 20rpx;
+}
 .container {
   padding: 0 30rpx;
   .userinfo {

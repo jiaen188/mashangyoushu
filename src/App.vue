@@ -55,4 +55,7 @@ export default {
 .btn-green {
   background-color: green;
 }
+.canclick {
+  color: #2d8cf0;
+}
 </style>

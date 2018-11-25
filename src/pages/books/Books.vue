@@ -47,7 +47,7 @@ export default {
       if (this.token) {
         // 去请求列表 todo
         wx.request({
-          url: `http://hm2.hwd.cn/api/v1/books`,
+          url: `https://book.fatewolf.com/api/v1/books`,
           header: {
             'authorization': `bearer ${this.token}`
           },
