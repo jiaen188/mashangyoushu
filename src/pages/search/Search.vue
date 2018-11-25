@@ -21,7 +21,6 @@ import { get } from '../../util';
 export default {
   data() {
     return {
-      token: '',
       key: '',  
       books: [],
       loading: false

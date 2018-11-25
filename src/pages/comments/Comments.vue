@@ -100,7 +100,6 @@ export default {
       comments: [],
       books: [],
       current: 'tab1',
-      token: '',
       isShowAll: false,
       mybooks: [],
       myapplys: [],
