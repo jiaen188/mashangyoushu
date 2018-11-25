@@ -16,6 +16,7 @@
 
 <script>
 import Card from '../../components/Card'
+import { get } from '../../util';
 
 export default {
   data() {
@@ -26,30 +27,17 @@ export default {
       loading: false
     }
   },
-  mounted() {
-
-  },
   methods: {
     searchlist() {
       console.log(this.key)
-      if (this.key) {
-        this.token = wx.getStorageSync('token')
-        let _this = this
-        wx.request({
-          url: `https://book.fatewolf.com/api/v1/search?kw=${this.key}`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('search',res)
-            if (res.data.code === 0 ) {
-              _this.books = res.data.data.data
-              console.log(_this.books)
-              _this.loading = res.data.data.data.length === 0
-            }
-          }
-        })
-      }
+      get('search', {
+        kw: this.key
+      })
+      .then(res => {
+        console.log('search',res)
+        this.books = res.data
+        this.loading = res.data.length === 0
+      })
     }
   },
   components: {
