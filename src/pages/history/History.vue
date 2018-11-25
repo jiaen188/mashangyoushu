@@ -18,6 +18,8 @@
 </template>
 
 <script>
+import { get } from '../../util'
+
 export default {
   data() {
     return {
@@ -34,29 +36,18 @@ export default {
   },
   methods: {
     getHistory() {
-      this.token = wx.getStorageSync('token')
-      let _this = this
-      if (this.token) {
-        wx.request({
-          url: `https://book.fatewolf.com/api/v1/borrow/${this.bookid}`,
-          header: {
-            'authorization': `bearer ${this.token}`
-          },
-          success(res) {
-            console.log('history*******',res)
-            if (res.data.code === 0) {
-              _this.list = res.data.data.data.map(item => {
-                return {
-                  ...item,
-                  created_at: item.created_at.split(' ')[0],
-                  return_at: item.return_at && item.return_at.split(' ')[0]
-                }
-              })
-              _this.loading = res.data.data.data.length === 0
-            }
+      get(`borrow/${this.bookid}`)
+      .then(res => {
+        console.log('history*******',res)
+        this.list = res.data.map(item => {
+          return {
+            ...item,
+            created_at: item.created_at && item.created_at.split(' ')[0],
+            return_at: item.return_at && item.return_at.split(' ')[0]
           }
         })
-      }
+        this.loading = res.data.length === 0
+      })
     }
   }
 }
