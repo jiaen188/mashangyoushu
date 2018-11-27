@@ -11,7 +11,7 @@
 	"qcloudRoot": "server/",
 	"compileType": "miniprogram",
 	"appid": "wx8613c6d830b0f694",
-	"projectname": "mpvue-mini-program",
+	"projectname": "%E7%A0%81%E4%B8%8A%E6%9C%89%E4%B9%A6",
 	"libVersion": "2.3.2",
 	"condition": {
 		"search": {
@@ -31,7 +31,7 @@
 			"list": []
 		},
 		"miniprogram": {
-			"current": 5,
+			"current": -1,
 			"list": [
 				{
 					"id": -1,

@@ -227,7 +227,7 @@ export default {
       .then(res => {
         console.log('myapply',res)
         if (res.length) {
-          this.myapplys = res.data.data.map(item => {
+          this.myapplys = res.map(item => {
             return this.dealResult(item)
           })
         }
