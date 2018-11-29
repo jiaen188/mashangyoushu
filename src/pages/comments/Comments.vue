@@ -175,7 +175,7 @@ export default {
       this.timer = setInterval(this.getBorrowSucc, 1000)
     },
     getBorrowSucc() {
-      get(`back/${this.selected.id}`)
+      get(`back/${this.selected.id}`, {}, false)
       .then(res => {
         console.log('back', res)
         if (_this.timer) {

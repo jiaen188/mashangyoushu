@@ -2,19 +2,19 @@
 import config from './config'
 
 // http get工具函数 获取数据
-export function get (url, data) {
-  return request(url, 'GET', data)
+export function get (url, data, isShowLoading = true) {
+  return request(url, 'GET', data, isShowLoading)
 }
 
-export function post (url, data) {
-  return request(url, 'POST', data)
+export function post (url, data, isShowLoading = true) {
+  return request(url, 'POST', data, isShowLoading)
 }
 
-export function put (url, data) {
-  return request(url, 'PUT', data)
+export function put (url, data, isShowLoading = true) {
+  return request(url, 'PUT', data, isShowLoading)
 }
 
-function request (url, method, data) {
+function request (url, method, data, isShowLoading) {
   const token = wx.getStorageSync('token')
   const header = token ? {
     'authorization': `bearer ${token}`
@@ -28,7 +28,7 @@ function request (url, method, data) {
     })
   }
 
-  wx.showLoading({
+  isShowLoading && wx.showLoading({
     title: '加载中',
     mask: true
   })
@@ -39,7 +39,7 @@ function request (url, method, data) {
       url: config.host + url,
       header,
       success: function (res) {
-        wx.hideLoading()
+        isShowLoading && wx.hideLoading()
 
         console.log('请求的结果 res', res)
         if (res.data.code === 0) {
@@ -49,7 +49,7 @@ function request (url, method, data) {
         }
       },
       fail: function (e) {
-        wx.hideLoading()
+        isShowLoading && wx.hideLoading()
         console.log('请求失败', e)
       }
     })
