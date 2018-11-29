@@ -54,6 +54,12 @@ function request (url, method, data, isShowLoading) {
       fail: function (e) {
         isShowLoading && wx.hideLoading()
         console.log('请求失败', e)
+        if (e.errMsg.indexOf('timeout') > -1) {
+          wx.showToast({
+            title: '请求超时',
+            icon: 'none'
+          })
+        }
       }
     })
   })

@@ -36,5 +36,8 @@
         "selectedIconPath": "static/img/todo-active.png"
       }
     ]
+  },
+  "networkTimeout": {
+    "request": 30000
   }
 }
