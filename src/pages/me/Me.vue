@@ -159,8 +159,9 @@ export default {
   },
   onShow () {
     let userinfo = wx.getStorageSync('userinfo')
-    if (userinfo) {
-      this.userinfo = userinfo
+    this.userinfo = userinfo ? userinfo : {
+      avatarUrl: '../../static/img/unlogin.png',
+      nickName: ''
     }
   }
 }

@@ -44,6 +44,9 @@ function request (url, method, data, isShowLoading) {
         console.log('请求的结果 res', res)
         if (res.data.code === 0) {
           resolve(res.data.data)
+        } else if (res.data.code === 401) {
+          console.log('401*****token过期', res)
+          reLogin(res.data.msg)
         } else {
           reject(res.data)
         }
@@ -54,6 +57,19 @@ function request (url, method, data, isShowLoading) {
       }
     })
   })
+}
+
+function reLogin (msg) {
+  wx.showToast({
+    title: msg,
+    icon: 'none'
+  })
+  wx.clearStorageSync()
+  setTimeout(() => {
+    wx.reLaunch({
+      url: '/pages/me/main'
+    })
+  }, 2000)
 }
 
 export function showModal (title, content) {
