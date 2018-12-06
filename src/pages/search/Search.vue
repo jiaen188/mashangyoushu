@@ -33,12 +33,7 @@ export default {
         kw: this.key
       })
       .then(res => {
-        console.log('search',res)
         this.books = [...res.storage.data, ...res.external.data]
-<<<<<<< HEAD
-=======
-        // this.books = res.data
->>>>>>> 1339d6b16a13a23ab7c82a9932a425aaa70400a5
         this.loading = res.data.length === 0
       })
     }
