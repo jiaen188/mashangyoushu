@@ -13,7 +13,7 @@
         <div class="info">
           <div class="header">
             <div class="title">{{book.title}}</div>
-            <div class="status">{{book.statusText}}</div>
+            <div class="status" @click.stop="handleShowModal(book)">{{book.statusText}}</div>
           </div>
           <div class="publish">
             {{book.author}} / {{book.publisher}} / {{book.average}}
@@ -74,6 +74,12 @@
       </div>
     </div>
 
+    <i-modal :visible="visible" @ok="handleClose" @cancel="handleClose">
+      <i-radio-group :current="currentStatus" @change="handleStatusChange">
+        <i-radio v-for="(item, index) in statusList" :key="index" :value="item.value"></i-radio>
+      </i-radio-group>
+    </i-modal>
+
   </div>
 </template>
 
@@ -107,10 +113,24 @@ export default {
       isShowDesk: false,
       selected: {},
       timer: null,
-      qrcode: null
+      qrcode: null,
+      visible: false,
+      currentStatus: ''
+    }
+  },
+  computed: {
+    statusList() {
+      const res = Object.keys(statusList).map(item => {
+        return {
+          id: item,
+          value: statusList[item]
+        }
+      })
+      return res
     }
   },
   mounted() {
+    console.log('statuslList', this.statusList)
     this.userinfo = wx.getStorageSync('userinfo')
     if (this.userinfo) {
       get('user', {
@@ -136,6 +156,22 @@ export default {
     }
   },
   methods: {
+    handleShowModal(item) {
+      this.currentStatus = item.statusText
+      this.visible = true
+    },
+    handleStatusChange(e) {
+      console.log('change', e)
+      this.currentStatus = e.mp.detail.value
+    },
+    handleClose(e) {
+      console.log('handleClose', e)
+      if (e.mp.type === 'ok') {
+        console.log('ok')
+      } else if (e.mp.type === 'cancel') {
+        console.log('cancel')
+      }
+    },
     changeStatus(item) {
       console.log('status', item.status)
       if (item.status !== 101) {

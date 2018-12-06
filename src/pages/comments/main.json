@@ -2,6 +2,9 @@
   "navigationBarTitleText": "我的图书",
   "usingComponents": {
     "i-tabs": "../../../static/iview/tabs/index",
-    "i-tab": "../../../static/iview/tab/index"
+    "i-tab": "../../../static/iview/tab/index",
+    "i-modal": "../../../static/iview/modal/index",
+    "i-radio-group": "../../../static/iview/radio-group/index",
+    "i-radio": "../../../static/iview/radio/index"
   }
 }
