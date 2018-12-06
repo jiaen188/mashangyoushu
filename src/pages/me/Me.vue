@@ -67,7 +67,7 @@ export default {
     borrowBook(id) {
       let _this = this
       console.log('borrow *********', Number(id))
-      post(`borrow/${Number(id)}`)
+      post(`borrow/${Number(id)}`, {}, false)
       .then(res => {
         showSuccess('借书成功')
         wx.switchTab({
@@ -90,7 +90,7 @@ export default {
 
           if (res.result) {
             console.log('扫描结果 是 条形码', res)
-            get(`isbn/${res.result}`)
+            get(`isbn/${res.result}`, {}, false)
             .then(res => {
               console.log('扫描书本的 条形码请求接口返回', res)
               this.getIsbnSuss(res.msg)

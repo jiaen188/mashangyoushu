@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <div class="search">
-      <input confirm-type="search" placeholder="请输入书名" v-model="key" @confirm="searchlist($event)" />
+      <input confirm-type="search" auto-focus="true" placeholder="请输入书名" v-model="key" @confirm="searchlist($event)" />
       <button type="defalut" class="btn" @click="searchlist">搜索</button>
     </div>
 
@@ -34,7 +34,7 @@ export default {
       })
       .then(res => {
         console.log('search',res)
-        this.books = res.data
+        this.books = [...res.storage.data, ...res.external.data]
         this.loading = res.data.length === 0
       })
     }
