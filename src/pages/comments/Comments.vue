@@ -157,6 +157,10 @@ export default {
   },
   methods: {
     handleShowModal(item) {
+      // todo
+      if (item) {
+        return
+      }
       this.currentStatus = item.statusText
       this.visible = true
     },

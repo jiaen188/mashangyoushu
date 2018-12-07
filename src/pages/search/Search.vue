@@ -33,7 +33,13 @@ export default {
         kw: this.key
       })
       .then(res => {
-        this.books = [...res.storage.data, ...res.external.data]
+        let external = []
+        if (Array.isArray(res.external.data)) {
+          external = res.external.data
+        } else {
+          external = Object.values(res.external.data)
+        }
+        this.books = [...res.storage.data, ...external]
         this.loading = res.data.length === 0
       })
     }
